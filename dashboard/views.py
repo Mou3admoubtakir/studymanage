@@ -17,16 +17,19 @@ def home(request):
 
 
 def notes(request):
-    if request.method == "POST":
-        form = NotesForm(request.POST)
-        if form.is_valid():
-            notes = Notes(
-                user=request.user, title=request.POST['title'], description=request.POST['description'])
-            notes.save()
-        messages.success(
-            request, f"Notes added succesfully by {request.user.username}!")
+    if request.user.is_authenticated:
+        if request.method == "POST":
+            form = NotesForm(request.POST)
+            if form.is_valid():
+                notes = Notes(
+                    user=request.user, title=request.POST['title'], description=request.POST['description'])
+                notes.save()
+            messages.success(
+                request, f"Notes added succesfully by {request.user.username}!")
+        else:
+            form = NotesForm()
     else:
-        form = NotesForm()
+        return redirect("register")
 
     notes = Notes.objects.filter(user=request.user)
     context = {'notes': notes, 'form': form}
@@ -45,22 +48,25 @@ def detail(request, pk=None):
 
 
 def homework(request):
-    if request.method == "POST":
-        subject = request.POST.get("subject")
-        title = request.POST.get("title")
-        description = request.POST.get("description")
-        due = request.POST.get("due")
-        is_finished = request.POST.get("is_finished")
-        if is_finished == 'on':
-            finished = True
-        else:
-            finished = False
-        print(subject, title, description, due, is_finished)
-        homework = Homework(user=request.user, subject=subject, title=title,
-                            description=description, due=due, is_finished=finished)
-        homework.save()
-        messages.success(
-            request, f"Homework added succesfully by {request.user.username}!")
+    if request.user.is_authenticated:
+        if request.method == "POST":
+            subject = request.POST.get("subject")
+            title = request.POST.get("title")
+            description = request.POST.get("description")
+            due = request.POST.get("due")
+            is_finished = request.POST.get("is_finished")
+            if is_finished == 'on':
+                finished = True
+            else:
+                finished = False
+            print(subject, title, description, due, is_finished)
+            homework = Homework(user=request.user, subject=subject, title=title,
+                                description=description, due=due, is_finished=finished)
+            homework.save()
+            messages.success(
+                request, f"Homework added succesfully by {request.user.username}!")
+    else:
+        return redirect("register")
 
     homeworks = Homework.objects.filter(user=request.user)
 
@@ -127,21 +133,24 @@ def youtube(request):
 
 
 def todo(request):
-    if request.method == "POST":
-        form = TodoForm(request.POST)
-        if form.is_valid():
-            if request.POST['is_finished'] == 'on':
-                finished = True
-            else:
-                finished = False
+    if request.user.is_authenticated:
+        if request.method == "POST":
+            form = TodoForm(request.POST)
+            if form.is_valid():
+                if request.POST['is_finished'] == 'on':
+                    finished = True
+                else:
+                    finished = False
 
-            todos = Todo(user=request.user,
-                         title=request.POST['title'], is_finished=finished)
-            todos.save()
-        messages.success(
-            request, f"Todos added succesfully by {request.user.username}!")
+                todos = Todo(user=request.user,
+                             title=request.POST['title'], is_finished=finished)
+                todos.save()
+            messages.success(
+                request, f"Todos added succesfully by {request.user.username}!")
+        else:
+            form = TodoForm()
     else:
-        form = TodoForm()
+        return redirect("register")
 
     todos = Todo.objects.filter(user=request.user)
 
